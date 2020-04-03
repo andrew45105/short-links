@@ -43,37 +43,29 @@ class LinkController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'url' => 'required|unique:links|max:256',
+            'url' => 'required|unique:links|max:256'
         ]);
 
         $url = trim(strip_tags(request('url')));
 
-        // если ссылка не соответсвует формату, показываем ошибку
-        if (!$url = filter_var($url, FILTER_VALIDATE_URL)) {
-            $validator->errors()->add('url', 'Ссылка не соответствует формату');
-            return redirect()->route('index');
-        }
+        $validator->after(function ($validator) use ($url) {
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                $validator->errors()->add('url', 'Ссылка не соответствует формату!');
+            }
+        });
+
+        $validator->validate();
 
         if ($validator->fails()) {
-            return redirect()
-                ->route('index')
-                ->withErrors($validator)
-                ->withInput();
+            return redirect()->route('index');
         }
-
-
-
-       /* $request->validate([
-            'url' => 'required|unique:links|max:256',
-        ]);*/
-
 
         // генерируем токен ссылки
         $letters    = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
         $token      = substr(str_shuffle($letters),0, 6);
 
         $link           = new Link();
-        $link->url      = request('url');
+        $link->url      = $url;
         $link->token    = $token;
         $link->save();
 
