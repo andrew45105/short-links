@@ -57,6 +57,7 @@ class LinkController extends Controller
         $validator->validate();
 
         if ($validator->fails()) {
+            // если не прошла валидация, то редиректим на главную
             return redirect()->route('index');
         }
 
